@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: logForwardingKafka
+parameters:
+- description: Namespace AMQ Streams is deployed
+  name: KAFKA_BOOTSTRAP
+  value: amq-cluster-kafka-bootstrap.kafka.svc
+- description: Infra Topic Name
+  name: INFRA_TOPIC
+  value: infra-logs-topic
+- description: Audit topic Name
+  name: AUDIT_TOPIC
+  value: audit-logs-topic
+objects:
+- apiVersion: logging.openshift.io/v1
+  kind: ClusterLogForwarder
+  metadata:
+    name: instance
+    namespace: openshift-logging
+  spec:
+    outputs:
+     - name: infra-topic
+       type: kafka
+       url: tls://${KAFKA_BOOTSTRAP}:9093/${INFRA_TOPIC}
+       secret:
+         name: infra
+     - name: audit-topic
+       type: kafka
+       url: tls://${KAFKA_BOOTSTRAP}:9093/${AUDIT_TOPIC}
+       secret:
+         name: audit
+    pipelines:
+     - name: infra-logs
+       inputRefs:
+       - infrastructure
+       outputRefs:
+       - INFRA_TOPIC
+       - default
+       labels:
+         logType: infra
+     - name: audit-logs
+       inputRefs:
+        - audit
+       outputRefs:
+        - AUDIT_TOPIC
+        - default
