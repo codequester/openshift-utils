@@ -1,0 +1,55 @@
+global:
+  resolve_timeout: 5m
+inhibit_rules:
+  - equal:
+      - namespace
+      - alertname
+    source_match:
+      severity: critical
+    target_match_re:
+      severity: warning|info
+  - equal:
+      - namespace
+      - alertname
+    source_match:
+      severity: warning
+    target_match_re:
+      severity: info
+receivers:
+  - name: Critical
+  - name: Default
+  - name: Watchdog
+  - name: slack
+    slack_configs:
+      - channel: '#ocp-logging-alerts'
+        send_resolved: true
+        icon_url: https://avatars3.githubusercontent.com/u/3380462      
+        api_url: >-
+          https://hooks.slack.com/services/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
+        title: >-
+          {{ range .Alerts }}
+            [ {{ .Status | toUpper }} ] - {{ .Labels.alertname }} - {{ .Labels.severity }}
+          {{ end }}
+        text: >-
+          {{ range .Alerts }}
+            *Summary:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          {{ end }}
+route:
+  group_by:
+    - namespace
+    - alertname
+  group_interval: 5m
+  group_wait: 30s
+  receiver: Default
+  repeat_interval: 5m
+  routes:
+    - match:
+        alertname: Watchdog
+      receiver: Watchdog
+    - match:
+        severity: critical
+      receiver: Critical
+    - receiver: slack
+      match:
+        namespace: ocp-kafka

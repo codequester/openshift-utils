@@ -8,12 +8,17 @@ spec:
   entityOperator:
     topicOperator: {}
     userOperator: {}
+  kafkaExporter:
+    topicRegex: ".*"
+    groupRegex: ".*"    
   kafka:
     config:
       log.message.format.version: "2.6"
       offsets.topic.replication.factor: 3
       transaction.state.log.min.isr: 2
       transaction.state.log.replication.factor: 3
+      socket.request.max.bytes: 504857600
+      auto.create.topics.enable: "false"
     listeners:
     - name: plain
       port: 9092
@@ -22,12 +27,44 @@ spec:
     - name: tls
       port: 9093
       tls: true
-      type: internal
-    replicas: 3
+      type: route
+    replicas: 3      
+    readinessProbe:
+      initialDelaySeconds: 15
+      timeoutSeconds: 5
+    livenessProbe:
+      initialDelaySeconds: 15
+      timeoutSeconds: 5
+    resources:
+      limits:
+        cpu: "4"
+        memory: 8Gi
+      requests:
+        cpu: "2"
+        memory: 4Gi
+    jvmOptions:
+      -Xms: 8192m
+      -Xmx: 8192m      
     storage:
       type: ephemeral
     version: 2.6.0
   zookeeper:
     replicas: 3
+    readinessProbe:
+      initialDelaySeconds: 15
+      timeoutSeconds: 5
+    livenessProbe:
+      initialDelaySeconds: 15
+      timeoutSeconds: 5
+    resources:
+      limits:
+        cpu: "1500"
+        memory: 4Gi
+      requests:
+        cpu: "1"
+        memory: 2Gi
+    jvmOptions:
+      -Xms: 4096m
+      -Xmx: 4096m
     storage:
-      type: ephemeral
+      type: ephemeral               

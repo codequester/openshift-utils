@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alertmanager-alertmanager
+type: Opaque
+stringData:
+  alertmanager.yaml: |
+    global:
+      slack_api_url: https://hooks.slack.com/services/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
+    route:
+      receiver: slack
+    receivers:
+    - name: slack
+      slack_configs:
+      - channel: "#ocp-logging-alerts"
+        title: "{{ range .Alerts }}{{ .Annotations.summary }}\n{{ end }}"
+        text: "{{ range .Alerts }}{{ .Annotations.description }}\n{{ end }}"
+        send_resolved: true
+
+
+          [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .GroupLabels.SortedPairs.Values | join " " }} {{ if gt (len .CommonLabels) (len .GroupLabels) }}({{ with .CommonLabels.Remove .GroupLabels.Names }}{{ .Values | join " " }}{{ end }}){{ end }}{{ end }}
+          
+
+
+          {{ range .Alerts }}
+            *Summary:* {{ .Annotations.summary }}
+            *Description:* {{ .Annotations.description }}
+            *Details:*
+              {{ range .Labels.SortedPairs }}
+                *{{ .Name }}:* {{ .Value }}
+              {{ end }}
+          {{ end }}

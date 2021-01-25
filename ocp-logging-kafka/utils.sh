@@ -1,11 +1,21 @@
 #!/bin/bash
 
+
+HELP="
+How to use this script:
+-i  --interactive   | Setup logging using interactive mode
+-y  --yestoall      | Setup logging using install all mode
+-h  --help          | Show help menu
+"
+
+
 greenTxt=`tput setaf 2`
 yellowTxt=`tput setaf 3`
 redTxt=`tput setaf 1`
 cyanTxt=`tput setaf 6`
 resetTxtColor=`tput sgr0`
 bold=`tput bold`
+
 
 
 printInfo() {
@@ -20,13 +30,18 @@ printError() {
     echo "${redTxt}[ERROR]: ${1} ${resetTxtColor}"
 }
 
-promptYesNo() {
-    while true; do
-        read -p "${bold}${cyanTxt} --> ${1} - (Y/N) : ${resetTxtColor}" 
-        if [[ $REPLY =~ ^[Yy|Nn]$ ]]; then
-            break
-        fi
-    done
+promptYesNo() { 
+    if [[ $INTERACTIVE_MODE == "true" ]]; then
+        while true; do
+            read -p "${bold}${cyanTxt} --> ${1} - (Y/N) : ${resetTxtColor}" 
+            if [[ $REPLY =~ ^[Yy|Nn]$ ]]; then
+                break
+            fi
+        done
+    else
+        echo "${bold}${cyanTxt} --> ${1} - (Y/N) : ${resetTxtColor} Y"
+        REPLY=y
+    fi
 }
 
 isLoggedIn() {
